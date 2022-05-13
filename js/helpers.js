@@ -13,4 +13,10 @@ function keyPressed() {
       reset();
     }
   }
+
+function saveFrame() {
+  if (frameCount - 1 < nFrames) {
+    saveCanvas(`frame_${('000' + frameCount).slice(-3)}`);
+  }
+}
   
