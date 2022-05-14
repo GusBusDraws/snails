@@ -1,12 +1,14 @@
 let nPixelsWidth = 500
 let nPixelsHeight = nPixelsWidth
 // Snail variables
-let snailBodyLength = 7
+let bodyColor = [255]
+let bodyLength = 7
+let bodyWidthMin = 7
+let bodyWidthMax = 10
 let nStartingSnails = 2
 let probNewSnail = 0.02
 let snails = []
 // Trail variables
-let viewTrail = true
 let trailWidth = 5
 let trailStep = trailWidth / 2
 let trailColor = [255, 255, 255, 50]
@@ -28,6 +30,8 @@ class Snail {
     // this.points = [[random(width), random(height)]]
     this.x = x
     this.y = y
+    this.bodyPoints = [[this.x, this.y]]
+    this.bodyWidthInc = floor(bodyLength / 2) / (bodyWidthMax - bodyWidthMin)
     this.trailPoints = [[this.x, this.y]]
     this.trailTheta = random(2 * PI)
   }
@@ -36,13 +40,42 @@ class Snail {
     this.trailTheta += dTheta
     let x2 = this.x + trailStep * cos(this.trailTheta)
     let y2 = this.y + trailStep * sin(this.trailTheta)
+    // Add point to array of trail points so it can be redrawn every frame
     this.trailPoints.push[[x2, y2]]
+    // Add point to body if not full size or replace the first body point
+    if (this.trailPoints < bodyLength) {
+      this.bodyPoints.push[[x2, y2]]
+    } else {
+      // Remove first element of bodyPoints array
+      this.bodyPoints.splice(0, 1)
+      // Add new body point to the end of the bodyPoints array
+      this.bodyPoints.push[[x2, y2]]
+    }
     this.x = x2
     this.y = y2
-    if (viewTrail) {
-      strokeWeight(5)
-      stroke.apply(null, trailColor)
-      point(x2, y2)
+    this.drawBody()
+    this.drawTrail()
+  }
+  drawBody() {
+    stroke.apply(null, bodyColor)
+    for (let i = 0; i < this.bodyPoints.length; i ++) {
+      let p = this.bodyPoints[i]
+      let bodyWidth = bodyWidthMin
+      // Front of snail: increase body width by bodyWidthInc at each point. Back: decrease
+      if (i <= floor(bodyLength / 2) + 1) {
+        bodyWidth += this.bodyWidthInc
+      } else (
+        bodyWidth -= this.bodyWidthInc
+      )
+      strokeWeight(bodyWidth)
+      point(p[0], p[1])
+    }
+  }
+  drawTrail() {
+    strokeWeight(trailWidth)
+    stroke.apply(null, trailColor)
+    for (let p of this.trailPoints) { 
+      point(p[0], p[1])
     }
   }
 }
@@ -52,15 +85,16 @@ function setup() {
   frameRate(fps)
   background(100)
   for (let i = 0; i < nStartingSnails; i ++){
-    snails.push(new Snail(random(width / 2), random(height / 2), viewTrail))
+    snails.push(new Snail(random(width / 2), random(height / 2)))
   }
   console.log('Press SPACE to stop looping or r to reset.')
 }
 
 function draw() {
   if (saveFrames) saveFrame()
+  background(100)
   if (random() < probNewSnail) {
-    snails.push(new Snail(random(width / 2), random(height / 2), viewTrail))
+    snails.push(new Snail(random(width / 2), random(height / 2)))
   }
   for (let snail of snails) {
     snail.move()
@@ -68,7 +102,7 @@ function draw() {
 }
 
 function mousePressed() {
-  snails.push(new Snail(mouseX, mouseY, viewTrail))
+  snails.push(new Snail(mouseX, mouseY))
   console.log(`New snail at ${mouseX}, ${mouseY}. There are now ${snails.length} snails.`)
 }
 
