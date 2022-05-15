@@ -10,7 +10,7 @@ function keyPressed() {
       }
     }
     if (key === 'r') {
-      reset();
+      resetSketch();
     }
   }
 
